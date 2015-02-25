@@ -1,0 +1,11 @@
+D:\Game Dev\Maze\Temp\UnityVS_bin\Debug\Assembly-CSharp.dll
+D:\Game Dev\Maze\Temp\UnityVS_bin\Debug\Assembly-CSharp.pdb
+D:\Game Dev\Maze\Temp\UnityVS_bin\Debug\UnityEditor.dll
+D:\Game Dev\Maze\Temp\UnityVS_bin\Debug\UnityEngine.dll
+D:\Game Dev\Maze\Temp\UnityVS_bin\Debug\UnityEngine.UI.dll
+D:\Game Dev\Maze\Temp\UnityVS_bin\Debug\UnityEngine.xml
+D:\Game Dev\Maze\Temp\UnityVS_bin\Debug\UnityEditor.xml
+D:\Game Dev\Maze\Temp\UnityVS_bin\Debug\UnityEngine.UI.xml
+D:\Game Dev\Maze\obj\Debug\UnityVS.Maze.CSharp.csprojResolveAssemblyReference.cache
+D:\Game Dev\Maze\obj\Debug\Assembly-CSharp.dll
+D:\Game Dev\Maze\obj\Debug\Assembly-CSharp.pdb
