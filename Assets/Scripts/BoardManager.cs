@@ -42,10 +42,10 @@ namespace Completed
             gridPositions.Clear();
 
             //Loop through x axis (columns).
-            for (float x = 1; x < columns - 1; x += 0.32f)
+            for (int x = 1; x < columns - 1; x++)
             {
                 //Within each column, loop through y axis (rows).
-                for (float y = 1; y < rows - 1; y += 0.32f)
+                for (int y = 1; y < rows - 1; y++)
                 {
                     //At each index add a new Vector3 to our list with the x and y coordinates of that position.
                     gridPositions.Add(new Vector3(x, y, 0f));
@@ -61,16 +61,16 @@ namespace Completed
             boardHolder = new GameObject("Board").transform;
 
             //Loop along x axis, starting from -1 (to fill corner) with floor or outerwall edge tiles.
-            for (float x = -1; x < columns + 1; x += 0.32f)
+            for (int x = 0; x <= columns; x++)
             {
                 //Loop along y axis, starting from -1 to place floor or outerwall tiles.
-                for (float y = -1; y < rows + 1; y += 0.32f)
+                for (int y = 0; y <= rows; y++)
                 {
                     //Choose a random tile from our array of floor tile prefabs and prepare to instantiate it.
                     GameObject toInstantiate = floorTiles[Random.Range(0, floorTiles.Length)];
 
                     //Check if we current position is at board edge, if so choose a random outer wall prefab from our array of outer wall tiles.
-                    if (x == -1 || x == columns || y == -1 || y == rows)
+                    if (x == 0f || (int)x == columns || y == 0f || (int)y == rows)
                         toInstantiate = wallTiles[Random.Range(0, wallTiles.Length)];
 
                     //Instantiate the GameObject instance using the prefab chosen for toInstantiate at the Vector3 corresponding to current grid position in loop, cast it to GameObject.
