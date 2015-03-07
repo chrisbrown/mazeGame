@@ -3,37 +3,22 @@ using System;
 using System.Collections.Generic;       //Allows us to use Lists.
 using Random = UnityEngine.Random;      //Tells Random to use the Unity Engine random number generator.
 
-namespace Completed
+namespace MazeGame
 {
-
+    public enum cellType{wall, tile};
     public class BoardManager : MonoBehaviour
     {
-        // Using Serializable allows us to embed a class with sub properties in the inspector.
-        [Serializable]
-        public class Count
-        {
-            public int minimum;             //Minimum value for our Count class.
-            public int maximum;             //Maximum value for our Count class.
 
-
-            //Assignment constructor.
-            public Count(int min, int max)
-            {
-                minimum = min;
-                maximum = max;
-            }
-        }
-
-
-        public int columns = 8;                                         //Number of columns in our game board.
-        public int rows = 8;                                            //Number of rows in our game board.
+        public int columns = 32;                                         //Number of columns in our game board.
+        public int rows = 32;                                            //Number of rows in our game board.
+        private Dictionary<Vector2, Cell> cells;
         public GameObject exit;                                         //Prefab to spawn for exit.
         public GameObject[] floorTiles;                                 //Array of floor prefabs.
         public GameObject[] wallTiles;                                  //Array of wall prefabs.
 
         private Transform boardHolder;                                  //A variable to store a reference to the transform of our Board object.
         private List<Vector3> gridPositions = new List<Vector3>();   //A list of possible locations to place tiles.
-
+        public Vector3 goalPosition;
 
         //Clears our list gridPositions and prepares it to generate a new board.
         void InitialiseList()
@@ -93,8 +78,9 @@ namespace Completed
             //Reset our list of gridpositions.
             InitialiseList();
 
+            goalPosition = new Vector3(Random.Range((int)(columns / 2), columns), Random.Range((int)(rows / 2), rows), 0f);
             //Instantiate the exit tile in the upper right hand corner of our game board
-            Instantiate(exit, new Vector3(columns - 1, rows - 1, 0f), Quaternion.identity);
+            Instantiate(exit, goalPosition, Quaternion.identity);
         }
     }
 }

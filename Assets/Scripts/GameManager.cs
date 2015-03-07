@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-namespace Completed
+namespace MazeGame
 {
     using System.Collections.Generic;       //Allows us to use Lists. 
 
