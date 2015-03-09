@@ -5,13 +5,12 @@ using Random = UnityEngine.Random;      //Tells Random to use the Unity Engine r
 
 namespace MazeGame
 {
-    public enum cellType{wall, tile};
+    public enum cellType{outerWall, innerWall, tile, goal};
     public class BoardManager : MonoBehaviour
     {
-
-        public int columns = 32;                                         //Number of columns in our game board.
-        public int rows = 32;                                            //Number of rows in our game board.
-        private Dictionary<Vector2, Cell> cells;
+        public const int columns = 32;                                         //Number of columns in our game board.
+        public const int rows = 32;                                            //Number of rows in our game board.
+        private Dictionary<Vector3, Cell> cells = new Dictionary<Vector3,Cell>(); //Set of cells for the maze
         public GameObject exit;                                         //Prefab to spawn for exit.
         public GameObject[] floorTiles;                                 //Array of floor prefabs.
         public GameObject[] wallTiles;                                  //Array of wall prefabs.
@@ -38,29 +37,111 @@ namespace MazeGame
             }
         }
 
+        Vector3 getLowestWeightNeighbor(Cell c)
+        {
+            List<Vector3> neighbors = c.getNeighbors();
+            int lowestWeight = cells[neighbors[0]].getWeight();
+            Vector3 lowest = neighbors[0];
+
+            foreach (Vector3 v in neighbors) {
+                Cell curr = cells[v];
+                if (curr.getWeight() < lowestWeight)
+                {
+                    lowestWeight = curr.getWeight();
+                    lowest = curr.getPosition();
+                }
+            }
+
+            return lowest;
+        }
+
+        void MazeInit()
+        {
+            HashSet<Cell> frontier = new HashSet<Cell>();
+            frontier.Add(cells[new Vector3(0, 0, 0)]);
+            while (frontier.Count > 0)
+            {
+                Cell[] currFrontier = new Cell[frontier.Count];
+                frontier.CopyTo(currFrontier);
+                Cell curr = currFrontier[Random.Range(0, currFrontier.Length)];
+                frontier.Remove(curr);
+                foreach (Vector3 v in curr.getNeighbors())
+                {
+                    Cell nextCell = cells[v];
+                    //nextCell.setCellType(cellType.tile);
+                    int count = 0;
+                    foreach (Vector3 nv in nextCell.getNeighbors()) {
+                        Cell currNeighbor = cells[nv];
+                        if (currNeighbor.getCellType() == cellType.tile || currNeighbor.getCellType() == cellType.goal)
+                        {
+                            count++;
+                        }
+                    }
+                    if (count <= 1)
+                        frontier.Add(nextCell);
+                }
+                curr.setCellType(cellType.tile);
+            }
+
+        }
+
+        void BoardInit()
+        {
+            cells.Clear();
+            for (int x = 0; x <= columns; x++)
+            {
+                //Loop along y axis, starting from -1 to place floor or outerwall tiles.
+                for (int y = 0; y <= rows; y++)
+                {
+                    Vector3 pos = new Vector3(x, y, 0f);
+                    if (x == 0f || (int)x == columns || y == 0f || (int)y == rows)
+                    {
+                        cells.Add(pos, new Cell(pos, cellType.outerWall));
+                    }
+                    else
+                    {
+                        cells.Add(pos, new Cell(pos, cellType.innerWall));
+                    }
+                }
+            }
+            goalPosition = new Vector3(Random.Range((int)(columns / 2), columns), Random.Range((int)(rows / 2), rows), 0f);
+            cells[goalPosition] = new Cell(goalPosition, cellType.goal);
+        }
 
         //Sets up the outer walls and floor (background) of the game board.
         void BoardSetup()
         {
             //Instantiate Board and set boardHolder to its transform.
             boardHolder = new GameObject("Board").transform;
-
             //Loop along x axis, starting from -1 (to fill corner) with floor or outerwall edge tiles.
             for (int x = 0; x <= columns; x++)
             {
                 //Loop along y axis, starting from -1 to place floor or outerwall tiles.
                 for (int y = 0; y <= rows; y++)
-                {
+                {        
                     //Choose a random tile from our array of floor tile prefabs and prepare to instantiate it.
-                    GameObject toInstantiate = floorTiles[Random.Range(0, floorTiles.Length)];
-
+                    GameObject toInstantiate = floorTiles[3];
+                    Vector3 pos = new Vector3(x, y, 0f);
                     //Check if we current position is at board edge, if so choose a random outer wall prefab from our array of outer wall tiles.
-                    if (x == 0f || (int)x == columns || y == 0f || (int)y == rows)
-                        toInstantiate = wallTiles[Random.Range(0, wallTiles.Length)];
-
+                    switch (cells[pos].getCellType()) {
+                        case cellType.outerWall:
+                            toInstantiate = wallTiles[0];
+                            break;
+                        case cellType.innerWall:
+                            toInstantiate = wallTiles[1];
+                            break;
+                        case cellType.goal:
+                            toInstantiate = exit;
+                            break;
+                        case cellType.tile:
+                            toInstantiate = floorTiles[2];
+                            break;
+                        default:
+                            break;
+                    }
                     //Instantiate the GameObject instance using the prefab chosen for toInstantiate at the Vector3 corresponding to current grid position in loop, cast it to GameObject.
                     GameObject instance =
-                        Instantiate(toInstantiate, new Vector3(x, y, 0f), Quaternion.identity) as GameObject;
+                        Instantiate(toInstantiate, pos, Quaternion.identity) as GameObject;
 
                     //Set the parent of our newly instantiated object instance to boardHolder, this is just organizational to avoid cluttering hierarchy.
                     instance.transform.SetParent(boardHolder);
@@ -72,13 +153,19 @@ namespace MazeGame
         //SetupScene initializes our level and calls the previous functions to lay out the game board
         public void SetupScene()
         {
+            //Creates the list of cells.
+            BoardInit();
+
+            //Creates the maze
+            MazeInit();
+
             //Creates the outer walls and floor.
             BoardSetup();
 
             //Reset our list of gridpositions.
             InitialiseList();
 
-            goalPosition = new Vector3(Random.Range((int)(columns / 2), columns), Random.Range((int)(rows / 2), rows), 0f);
+            
             //Instantiate the exit tile in the upper right hand corner of our game board
             Instantiate(exit, goalPosition, Quaternion.identity);
         }
