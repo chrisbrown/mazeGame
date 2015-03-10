@@ -7,13 +7,21 @@ namespace MazeGame {
         private cellType cellType;
         private Vector3 position;
         private int weight;
+        private bool visited;
+
 	    public Cell(Vector3 p, cellType c)
 	    {
             position = p;
             cellType = c;
             weight = Random.Range(0, BoardManager.rows * BoardManager.columns);
+            visited = false;
 	    }
 
+        public bool beenVisited
+        {
+            get { return this.visited; }
+            set { visited = value; }
+        }
         public cellType getCellType()
         {
             return cellType;

@@ -8,8 +8,8 @@ namespace MazeGame
     public enum cellType{outerWall, innerWall, tile, goal};
     public class BoardManager : MonoBehaviour
     {
-        public const int columns = 6;                                         //Number of columns in our game board.
-        public const int rows = 6;                                            //Number of rows in our game board.
+        public const int columns = 32;                                         //Number of columns in our game board.
+        public const int rows = 32;                                            //Number of rows in our game board.
         private Dictionary<Vector3, Cell> cells = new Dictionary<Vector3,Cell>(); //Set of cells for the maze
         public GameObject exit;                                         //Prefab to spawn for exit.
         public GameObject[] floorTiles;                                 //Array of floor prefabs.
@@ -69,6 +69,8 @@ namespace MazeGame
                 Cell curr = currFrontier[Random.Range(0, currFrontier.Length)];
                 //Remove the current cell from the frontier
                 frontier.Remove(curr);
+
+                curr.beenVisited = true;
                 //Set the active cell to an inner tile
                 if (curr.getCellType() != cellType.outerWall)
                 {
@@ -81,7 +83,7 @@ namespace MazeGame
                             count++;
                         }
 
-                        if (currNeighbor.getCellType() == cellType.innerWall)
+                        if (currNeighbor.getCellType() == cellType.innerWall && currNeighbor.beenVisited == false)
                             frontier.Add(currNeighbor);
                     }
                     if (count <= 1)
