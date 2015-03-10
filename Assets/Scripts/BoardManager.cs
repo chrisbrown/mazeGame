@@ -8,8 +8,8 @@ namespace MazeGame
     public enum cellType{outerWall, innerWall, tile, goal};
     public class BoardManager : MonoBehaviour
     {
-        public const int columns = 32;                                         //Number of columns in our game board.
-        public const int rows = 32;                                            //Number of rows in our game board.
+        public const int columns = 6;                                         //Number of columns in our game board.
+        public const int rows = 6;                                            //Number of rows in our game board.
         private Dictionary<Vector3, Cell> cells = new Dictionary<Vector3,Cell>(); //Set of cells for the maze
         public GameObject exit;                                         //Prefab to spawn for exit.
         public GameObject[] floorTiles;                                 //Array of floor prefabs.
@@ -58,29 +58,37 @@ namespace MazeGame
         void MazeInit()
         {
             HashSet<Cell> frontier = new HashSet<Cell>();
-            frontier.Add(cells[new Vector3(0, 0, 0)]);
+            frontier.Add(cells[new Vector3(Random.Range(1, columns), Random.Range(1, rows), 0)]);
             while (frontier.Count > 0)
             {
+                Debug.Log("Still here");
+                
+                //Pick a random element of the set
                 Cell[] currFrontier = new Cell[frontier.Count];
                 frontier.CopyTo(currFrontier);
                 Cell curr = currFrontier[Random.Range(0, currFrontier.Length)];
+                //Remove the current cell from the frontier
                 frontier.Remove(curr);
-                foreach (Vector3 v in curr.getNeighbors())
+                //Set the active cell to an inner tile
+                if (curr.getCellType() != cellType.outerWall)
                 {
-                    Cell nextCell = cells[v];
-                    //nextCell.setCellType(cellType.tile);
                     int count = 0;
-                    foreach (Vector3 nv in nextCell.getNeighbors()) {
+                    foreach (Vector3 nv in curr.getNeighbors())
+                    {
                         Cell currNeighbor = cells[nv];
-                        if (currNeighbor.getCellType() == cellType.tile || currNeighbor.getCellType() == cellType.goal)
+                        if (currNeighbor.getCellType() == cellType.tile)
                         {
                             count++;
                         }
+
+                        if (currNeighbor.getCellType() == cellType.innerWall)
+                            frontier.Add(currNeighbor);
                     }
                     if (count <= 1)
-                        frontier.Add(nextCell);
+                        curr.setCellType(cellType.tile);
                 }
-                curr.setCellType(cellType.tile);
+                //Add neighbors with 1 or fewer tile neighbors to the frontier
+                
             }
 
         }
