@@ -14,6 +14,8 @@ namespace MazeGame
         public GameObject exit;                                         //Prefab to spawn for exit.
         public GameObject[] floorTiles;                                 //Array of floor prefabs.
         public GameObject[] wallTiles;                                  //Array of wall prefabs.
+        public GameObject cam;
+        public GameObject player;
 
         private Transform boardHolder;                                  //A variable to store a reference to the transform of our Board object.
         private List<Vector3> gridPositions = new List<Vector3>();   //A list of possible locations to place tiles.
@@ -37,36 +39,39 @@ namespace MazeGame
             }
         }
 
-        Vector3 getLowestWeightNeighbor(Cell c)
+        Cell getLowestWeight(Cell[] c)
         {
-            List<Vector3> neighbors = c.getNeighbors();
-            int lowestWeight = cells[neighbors[0]].getWeight();
-            Vector3 lowest = neighbors[0];
-
-            foreach (Vector3 v in neighbors) {
-                Cell curr = cells[v];
-                if (curr.getWeight() < lowestWeight)
-                {
-                    lowestWeight = curr.getWeight();
-                    lowest = curr.getPosition();
-                }
+            Cell lowest = c[0];
+            foreach (Cell cell in c)
+            {
+                if (cell.getWeight() < lowest.getWeight())
+                    lowest = cell;
             }
-
             return lowest;
+        }
+
+        int numTileNeighbors(Cell c)
+        {
+            int count = 0;
+            foreach (Vector3 v in c.getNeighbors()) {
+                if (cells[v].getCellType() == cellType.tile)
+                    count++;
+            }
+            return count;
         }
 
         void MazeInit()
         {
             HashSet<Cell> frontier = new HashSet<Cell>();
-            frontier.Add(cells[new Vector3(Random.Range(1, columns), Random.Range(1, rows), 0)]);
+            Cell start = cells[new Vector3(Random.Range(1, columns), Random.Range(1, rows), 0)];
+            Debug.Log(start.getPosition());
+            frontier.Add(start);
             while (frontier.Count > 0)
             {
-                Debug.Log("Still here");
-                
                 //Pick a random element of the set
                 Cell[] currFrontier = new Cell[frontier.Count];
                 frontier.CopyTo(currFrontier);
-                Cell curr = currFrontier[Random.Range(0, currFrontier.Length)];
+                Cell curr = getLowestWeight(currFrontier);
                 //Remove the current cell from the frontier
                 frontier.Remove(curr);
 
@@ -74,20 +79,16 @@ namespace MazeGame
                 //Set the active cell to an inner tile
                 if (curr.getCellType() != cellType.outerWall)
                 {
-                    int count = 0;
-                    foreach (Vector3 nv in curr.getNeighbors())
+                    if (numTileNeighbors(curr) <= 1)
                     {
-                        Cell currNeighbor = cells[nv];
-                        if (currNeighbor.getCellType() == cellType.tile)
-                        {
-                            count++;
-                        }
-
-                        if (currNeighbor.getCellType() == cellType.innerWall && currNeighbor.beenVisited == false)
-                            frontier.Add(currNeighbor);
-                    }
-                    if (count <= 1)
                         curr.setCellType(cellType.tile);
+                        foreach (Vector3 nnv in curr.getNeighbors())
+                        {
+                            Cell next = cells[nnv];
+                            if (next.getCellType() == cellType.innerWall && next.beenVisited == false)
+                                frontier.Add(next);
+                        }
+                    }
                 }
                 //Add neighbors with 1 or fewer tile neighbors to the frontier
                 
@@ -159,6 +160,25 @@ namespace MazeGame
             }
         }
 
+        void spawnPlayer()
+        {
+            Dictionary<Vector3, Cell>.ValueCollection vals = cells.Values;
+            List<Cell> tiles = new List<Cell>();
+            foreach (Cell c in vals)
+            {
+                if (c.getCellType() == cellType.tile)
+                {
+                    tiles.Add(c);
+                }
+            }
+
+            Vector3 pos = tiles[Random.Range(0, tiles.Count)].getPosition();
+
+            GameObject p = Instantiate(player, pos, Quaternion.identity) as GameObject;
+            GameObject camera = Instantiate(cam, new Vector3(p.transform.position.x, p.transform.position.y, -10), Quaternion.identity) as GameObject;
+            camera.transform.SetParent(p.transform);
+
+        }
 
         //SetupScene initializes our level and calls the previous functions to lay out the game board
         public void SetupScene()
@@ -175,7 +195,9 @@ namespace MazeGame
             //Reset our list of gridpositions.
             InitialiseList();
 
-            
+            //Spawn the player.
+            spawnPlayer();
+
             //Instantiate the exit tile in the upper right hand corner of our game board
             Instantiate(exit, goalPosition, Quaternion.identity);
         }
